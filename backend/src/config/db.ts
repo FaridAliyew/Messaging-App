@@ -1,10 +1,18 @@
-/**
- * Database connection module.
- * Prepared placeholder for Phase 2 MongoDB/Mongoose integration.
- * Do not connect or invoke in Phase 1.
- */
+import mongoose from 'mongoose';
 
 export const connectDB = async (): Promise<void> => {
-  // Phase 2: Mongoose connection logic will be implemented here.
-  console.log('MongoDB connection initialized (placeholder).');
+  const uri = process.env.MONGODB_URI || (process.env as Record<string, string | undefined>).MANGODB_URL || process.env.MONGODB_URL;
+
+  if (!uri) {
+    console.error('[database]: Error: MONGODB_URI is not defined in environment variables.');
+    process.exit(1);
+  }
+
+  try {
+    const conn = await mongoose.connect(uri);
+    console.log(`[database]: MongoDB connected successfully: ${conn.connection.host}`);
+  } catch (error) {
+    console.error('[database]: MongoDB connection error:', error);
+    process.exit(1);
+  }
 };

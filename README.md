@@ -6,11 +6,15 @@ A full-stack real-time messaging application built as part of The Odin Project c
 
 ## Project Status
 
-**Phase 1: Project Initialization and Architecture (Current)**
-- React + Vite + TypeScript frontend setup with Tailwind CSS
-- Node.js + Express + TypeScript backend architecture
-- Routing, Axios, TanStack Query, and Health Check endpoint (`GET /api/health`) configured
-- Clean separation of concerns with modular folder structures
+**Phase 2: MongoDB Integration & Authentication (Completed)**
+- Real MongoDB Atlas connection using Mongoose (`config/db.ts`)
+- User model with bcrypt password hashing (`pre('save')`) and password comparison
+- JWT utility functions (`signToken`, `verifyToken`) and auth middleware (`middleware/authMiddleware.ts`)
+- Authentication controller with register, login, logout, and getMe (`controllers/authController.ts`)
+- Same-site & httpOnly cookie session persistence (`token` cookie with 7-day expiration)
+- React frontend authentication state (`AuthContext` / `useAuth`) backed by TanStack Query
+- React Hook Form + Zod validated forms (`LoginPage.tsx`, `RegisterPage.tsx`)
+- Protected route wrapper (`ProtectedRoute.tsx`) guarding authenticated views
 
 ---
 
