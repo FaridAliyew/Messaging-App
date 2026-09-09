@@ -6,15 +6,14 @@ A full-stack real-time messaging application built as part of The Odin Project c
 
 ## Project Status
 
-**Phase 3: Users List + User Profiles + Profile Editing (Completed)**
-- Users directory endpoint (`GET /api/users`) excluding current user with regex-safe search filter (`?search=`) and sorting
-- User profile endpoint (`GET /api/users/:id`) with ObjectId validation
-- Profile update endpoint (`PATCH /api/users/me`) with mass-assignment protection and Zod validation
-- Frontend user services (`userService.ts`) and TanStack Query hooks (`useUsers`, `useUser`, `useUpdateProfile`)
-- Responsive Navigation Bar (`Navbar.tsx`) and layout wrapper (`AppLayout.tsx`)
-- Users directory page (`UsersPage.tsx`) with search, avatar images, and initials fallback
-- Public user profile page (`UserProfilePage.tsx`) with loading and 404 handling
-- Edit profile page (`EditProfilePage.tsx`) with React Hook Form + Zod, prefilled data, and live avatar preview
+**Phase 4: Conversations + Messages (1:1 REST) (Completed)**
+- Conversation model with atomic upsert and unique `participantsKey` (`models/Conversation.ts`)
+- Message model with compound index on `{ conversation: 1, createdAt: 1 }` (`models/Message.ts`)
+- Conversation endpoints: `POST /api/conversations` (atomic find-or-create), `GET /api/conversations` (inbox with latest message), `GET /api/conversations/:id/messages` (newest-first with ISO date cursor, delivered chronologically), `POST /api/conversations/:id/messages` (send message)
+- Strict participant-based authorization returning `403 Forbidden` for non-participants
+- Frontend conversation services (`conversationService.ts`) and TanStack Query hooks (`useConversations`, `useMessages`, `useSendMessage`, `useStartConversation`)
+- Two-pane responsive Chat UI (`ChatPage.tsx`) with auto-scrolling message bubbles and light REST polling
+- Profile direct messaging integration ("Message" button on `UserProfilePage.tsx`) and navigation link in `Navbar.tsx`
 
 
 ---

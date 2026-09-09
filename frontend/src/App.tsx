@@ -1,11 +1,12 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { UsersPage } from './pages/UsersPage';
 import { UserProfilePage } from './pages/UserProfilePage';
 import { EditProfilePage } from './pages/EditProfilePage';
+import { ChatPage } from './pages/ChatPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { AppLayout } from './layouts/AppLayout';
@@ -29,6 +30,17 @@ export const App: React.FC = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/messages"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <ChatPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/chat" element={<Navigate to="/messages" replace />} />
         <Route
           path="/users"
           element={

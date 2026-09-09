@@ -36,6 +36,9 @@ export const Navbar: React.FC = () => {
             <NavLink to="/" end className={navLinkClass}>
               Home
             </NavLink>
+            <NavLink to="/messages" className={navLinkClass}>
+              Messages
+            </NavLink>
             <NavLink to="/users" className={navLinkClass}>
               Users
             </NavLink>

@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../hooks/useUsers';
+import { useAuth } from '../hooks/useAuth';
+import { useStartConversation } from '../hooks/useConversations';
 
 export const UserProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
   const { data: user, isLoading, isError, error } = useUser(id || '');
+  const startConversationMutation = useStartConversation();
   const [avatarError, setAvatarError] = useState(false);
 
   if (isLoading) {
@@ -42,6 +47,17 @@ export const UserProfilePage: React.FC = () => {
       </div>
     );
   }
+
+  const isSelf = currentUser?._id === user._id;
+
+  const handleStartMessage = async () => {
+    try {
+      const conv = await startConversationMutation.mutateAsync(user._id);
+      navigate(`/messages?conversationId=${conv._id}`);
+    } catch (err: any) {
+      console.error('Failed to start conversation:', err);
+    }
+  };
 
   const initials = user.displayName
     ? user.displayName.slice(0, 2).toUpperCase()
@@ -89,6 +105,26 @@ export const UserProfilePage: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Action buttons: Message button */}
+            {!isSelf && (
+              <button
+                onClick={handleStartMessage}
+                disabled={startConversationMutation.isPending}
+                className="inline-flex items-center space-x-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-50"
+              >
+                <span>💬</span>
+                <span>{startConversationMutation.isPending ? 'Opening...' : 'Message'}</span>
+              </button>
+            )}
+            {isSelf && (
+              <Link
+                to="/profile"
+                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+              >
+                Edit Profile
+              </Link>
+            )}
           </div>
 
           <div>
