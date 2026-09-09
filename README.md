@@ -6,15 +6,16 @@ A full-stack real-time messaging application built as part of The Odin Project c
 
 ## Project Status
 
-**Phase 2: MongoDB Integration & Authentication (Completed)**
-- Real MongoDB Atlas connection using Mongoose (`config/db.ts`)
-- User model with bcrypt password hashing (`pre('save')`) and password comparison
-- JWT utility functions (`signToken`, `verifyToken`) and auth middleware (`middleware/authMiddleware.ts`)
-- Authentication controller with register, login, logout, and getMe (`controllers/authController.ts`)
-- Same-site & httpOnly cookie session persistence (`token` cookie with 7-day expiration)
-- React frontend authentication state (`AuthContext` / `useAuth`) backed by TanStack Query
-- React Hook Form + Zod validated forms (`LoginPage.tsx`, `RegisterPage.tsx`)
-- Protected route wrapper (`ProtectedRoute.tsx`) guarding authenticated views
+**Phase 3: Users List + User Profiles + Profile Editing (Completed)**
+- Users directory endpoint (`GET /api/users`) excluding current user with regex-safe search filter (`?search=`) and sorting
+- User profile endpoint (`GET /api/users/:id`) with ObjectId validation
+- Profile update endpoint (`PATCH /api/users/me`) with mass-assignment protection and Zod validation
+- Frontend user services (`userService.ts`) and TanStack Query hooks (`useUsers`, `useUser`, `useUpdateProfile`)
+- Responsive Navigation Bar (`Navbar.tsx`) and layout wrapper (`AppLayout.tsx`)
+- Users directory page (`UsersPage.tsx`) with search, avatar images, and initials fallback
+- Public user profile page (`UserProfilePage.tsx`) with loading and 404 handling
+- Edit profile page (`EditProfilePage.tsx`) with React Hook Form + Zod, prefilled data, and live avatar preview
+
 
 ---
 

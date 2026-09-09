@@ -25,6 +25,12 @@ export interface LoginInput {
   password: string;
 }
 
+export interface UpdateProfileInput {
+  displayName?: string;
+  bio?: string;
+  avatarUrl?: string;
+}
+
 export interface MessageResponse {
   message: string;
 }

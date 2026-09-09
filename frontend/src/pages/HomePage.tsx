@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
@@ -12,6 +13,7 @@ interface HealthResponse {
 
 export const HomePage: React.FC = () => {
   const { user, logout, isLoggingOut } = useAuth();
+  const [avatarError, setAvatarError] = useState(false);
 
   const { data, isLoading, isError, error, refetch } = useQuery<HealthResponse>({
     queryKey: ['health'],
@@ -22,9 +24,14 @@ export const HomePage: React.FC = () => {
     retry: false,
   });
 
+  const initials = user?.displayName
+    ? user.displayName.slice(0, 2).toUpperCase()
+    : user?.username.slice(0, 2).toUpperCase() || 'U';
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
-      <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="space-y-6">
+      {/* Top Banner */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
@@ -32,21 +39,28 @@ export const HomePage: React.FC = () => {
             </h1>
             <p className="text-sm text-slate-500">The Odin Project Full-Stack Assignment</p>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-700/10">
-              Phase 2 Active
-            </span>
-          </div>
+          <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-700/10">
+            Phase 3 Active
+          </span>
         </div>
 
         {/* Authenticated User Card */}
         {user && (
-          <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 text-lg font-bold text-white shadow-sm">
-                  {user.displayName ? user.displayName[0].toUpperCase() : user.username[0].toUpperCase()}
-                </div>
+          <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50/50 p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center space-x-3.5">
+                {user.avatarUrl && !avatarError ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.displayName || user.username}
+                    onError={() => setAvatarError(true)}
+                    className="h-14 w-14 rounded-full border border-slate-200 object-cover shadow-sm"
+                  />
+                ) : (
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-lg font-bold text-white shadow-sm">
+                    {initials}
+                  </div>
+                )}
                 <div>
                   <h2 className="text-base font-semibold text-slate-900">
                     {user.displayName || user.username}
@@ -54,32 +68,74 @@ export const HomePage: React.FC = () => {
                   <p className="text-xs text-slate-500">@{user.username} • {user.email}</p>
                 </div>
               </div>
-              <button
-                onClick={() => logout()}
-                disabled={isLoggingOut}
-                className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-red-600 disabled:opacity-50"
-              >
-                {isLoggingOut ? 'Logging out...' : 'Log Out'}
-              </button>
+
+              <div className="flex items-center space-x-2">
+                <Link
+                  to="/profile"
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                  Edit Profile
+                </Link>
+                <button
+                  onClick={() => logout()}
+                  disabled={isLoggingOut}
+                  className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-red-600 disabled:opacity-50"
+                >
+                  {isLoggingOut ? 'Logging out...' : 'Log Out'}
+                </button>
+              </div>
             </div>
-            {user.bio && (
-              <p className="mt-3 text-xs text-slate-600 border-t border-slate-200/60 pt-2">
+
+            {user.bio ? (
+              <p className="mt-3.5 border-t border-slate-200/60 pt-3 text-xs leading-relaxed text-slate-600">
                 {user.bio}
+              </p>
+            ) : (
+              <p className="mt-3.5 border-t border-slate-200/60 pt-3 text-xs italic text-slate-400">
+                You haven't set a bio yet.{' '}
+                <Link to="/profile" className="text-slate-700 underline">
+                  Add one now
+                </Link>
               </p>
             )}
           </div>
         )}
 
-        <div className="space-y-4">
-          <div className="rounded-lg bg-slate-50 p-4">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Architecture Status
-            </h2>
-            <p className="mt-1 text-sm font-medium text-slate-800">
-              Authentication & MongoDB Integration Completed
+        {/* Phase 3 Navigation Cards */}
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Link
+            to="/users"
+            className="group rounded-xl border border-slate-200 p-4 transition hover:border-slate-300 hover:shadow-sm"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-slate-900 group-hover:text-blue-600">
+                👥 Browse Users Directory
+              </span>
+              <span className="text-xs text-slate-400">→</span>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">
+              Find and explore user profiles across the application.
             </p>
-          </div>
+          </Link>
 
+          <Link
+            to="/profile"
+            className="group rounded-xl border border-slate-200 p-4 transition hover:border-slate-300 hover:shadow-sm"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-slate-900 group-hover:text-blue-600">
+                ✏️ Customize Your Profile
+              </span>
+              <span className="text-xs text-slate-400">→</span>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">
+              Update your display name, bio, and avatar with live preview.
+            </p>
+          </Link>
+        </div>
+
+        {/* Backend API status check */}
+        <div className="space-y-4">
           <div className="rounded-lg border border-slate-200 p-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium text-slate-700">Backend Health API Check</h3>
@@ -118,7 +174,7 @@ export const HomePage: React.FC = () => {
         </div>
 
         <div className="mt-6 border-t border-slate-100 pt-4 text-center text-xs text-slate-400">
-          Ready for Phase 3: Users, Friends, and Profiles
+          Ready for Phase 4: Conversations, Messaging, and Real-time Communication
         </div>
       </div>
     </div>
