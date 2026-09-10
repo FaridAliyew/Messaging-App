@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useUpdateProfile } from '../hooks/useUsers';
+import { Input } from '../components/ui/Input';
+import { TextArea } from '../components/ui/TextArea';
+import { Button } from '../components/ui/Button';
+import { Avatar } from '../components/ui/Avatar';
 
 const profileSchema = z.object({
   displayName: z
@@ -61,24 +66,21 @@ export const EditProfilePage: React.FC = () => {
   }, [user, reset]);
 
   // Live avatarUrl watcher for preview
-  const watchedAvatarUrl = useWatch({
-    control,
-    name: 'avatarUrl',
-  });
-
-  const watchedDisplayName = useWatch({
-    control,
-    name: 'displayName',
-  });
+  const watchedAvatarUrl = useWatch({ control, name: 'avatarUrl' });
+  const watchedDisplayName = useWatch({ control, name: 'displayName' });
+  const watchedBio = useWatch({ control, name: 'bio' });
 
   // Reset avatar load error state when URL changes
   useEffect(() => {
     setAvatarLoadError(false);
   }, [watchedAvatarUrl]);
 
-  const initials = watchedDisplayName
-    ? watchedDisplayName.slice(0, 2).toUpperCase()
-    : user?.username.slice(0, 2).toUpperCase() || 'U';
+  // Build a preview user for the Avatar primitive
+  const previewUser = {
+    displayName: watchedDisplayName || undefined,
+    username: user?.username || '',
+    avatarUrl: watchedAvatarUrl && !avatarLoadError ? watchedAvatarUrl : undefined,
+  };
 
   const onSubmit = async (data: ProfileFormData) => {
     setSuccessMessage(null);
@@ -104,53 +106,62 @@ export const EditProfilePage: React.FC = () => {
   return (
     <div className="mx-auto max-w-xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Edit Profile</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1
+          className="text-2xl font-semibold tracking-tight text-foreground"
+          style={{ letterSpacing: '-0.02em' }}
+        >
+          Edit Profile
+        </h1>
+        <p className="mt-1 text-sm text-muted">
           Update your public profile information and avatar
         </p>
       </div>
 
       {/* Success alert */}
       {successMessage && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
-          ✓ {successMessage}
+        <div className="flex items-center gap-2.5 rounded-lg border border-emerald-600/30 bg-emerald-900/20 px-4 py-3 text-sm font-medium text-emerald-400">
+          <CheckCircle className="h-4 w-4 shrink-0" />
+          {successMessage}
         </div>
       )}
 
       {/* Server error alert */}
       {serverError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-          ✕ {serverError}
+        <div className="flex items-center gap-2.5 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm font-medium text-danger">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {serverError}
         </div>
       )}
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <div className="rounded-xl border border-border bg-surface p-6 sm:p-8">
         {/* Live Avatar Preview */}
-        <div className="mb-6 flex items-center space-x-4 border-b border-slate-100 pb-6">
+        <div className="mb-6 flex items-center gap-4 border-b border-border pb-6">
           <div className="relative">
-            {watchedAvatarUrl && !avatarLoadError ? (
+            {/* Use a hidden img to detect load errors on the watched URL */}
+            {watchedAvatarUrl && (
               <img
                 src={watchedAvatarUrl}
-                alt="Avatar preview"
+                alt=""
+                aria-hidden
+                className="hidden"
                 onError={() => setAvatarLoadError(true)}
-                className="h-16 w-16 rounded-full border border-slate-200 object-cover shadow-sm"
               />
-            ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-900 text-lg font-bold text-white shadow-sm">
-                {initials}
-              </div>
             )}
+            <Avatar user={previewUser} size="lg" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">Avatar Preview</h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-sm font-semibold text-foreground">
+              {watchedDisplayName || user?.username || 'Preview'}
+            </p>
+            <p className="font-mono text-xs text-faint">@{user?.username}</p>
+            <p className="mt-1 text-xs text-muted">
               {watchedAvatarUrl && !avatarLoadError
                 ? 'Previewing image from URL'
-                : 'Using fallback initials badge'}
+                : 'Using initials badge'}
             </p>
             {avatarLoadError && watchedAvatarUrl && (
-              <p className="mt-0.5 text-xs text-amber-600">
-                ⚠️ Unable to load image from URL (falling back to initials)
+              <p className="mt-0.5 text-xs text-danger">
+                ⚠ Unable to load image from URL
               </p>
             )}
           </div>
@@ -158,95 +169,61 @@ export const EditProfilePage: React.FC = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-          {/* Non-editable Username & Email info */}
+          {/* Non-editable Username & Email */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Username
-              </label>
-              <input
-                type="text"
-                disabled
-                value={user?.username || ''}
-                className="mt-1 block w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 cursor-not-allowed"
-              />
-              <p className="mt-1 text-[11px] text-slate-400">Username cannot be changed</p>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Email
-              </label>
-              <input
-                type="text"
-                disabled
-                value={user?.email || ''}
-                className="mt-1 block w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 cursor-not-allowed"
-              />
-              <p className="mt-1 text-[11px] text-slate-400">Email cannot be changed</p>
-            </div>
-          </div>
-
-          {/* Display Name */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-              Display Name *
-            </label>
-            <input
+            <Input
+              label="Username"
               type="text"
-              {...register('displayName')}
-              placeholder="e.g. Jane Doe"
-              className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
+              disabled
+              value={user?.username || ''}
+              hint="Username cannot be changed"
             />
-            {errors.displayName && (
-              <p className="mt-1 text-xs text-red-600">{errors.displayName.message}</p>
-            )}
+            <Input
+              label="Email"
+              type="text"
+              disabled
+              value={user?.email || ''}
+              hint="Email cannot be changed"
+            />
           </div>
 
-          {/* Avatar URL */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-              Avatar URL
-            </label>
-            <input
-              type="url"
-              {...register('avatarUrl')}
-              placeholder="https://images.unsplash.com/photo-..."
-              className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
-            />
-            {errors.avatarUrl && (
-              <p className="mt-1 text-xs text-red-600">{errors.avatarUrl.message}</p>
-            )}
-            <p className="mt-1 text-[11px] text-slate-500">
-              Paste a direct image link (e.g. from Unsplash or GitHub). Leave blank for default initials.
-            </p>
-          </div>
+          <Input
+            label="Display Name *"
+            type="text"
+            placeholder="e.g. Jane Doe"
+            error={errors.displayName?.message}
+            {...register('displayName')}
+          />
 
-          {/* Bio */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
-              Bio
-            </label>
-            <textarea
-              rows={3}
-              {...register('bio')}
-              placeholder="Tell others a bit about yourself..."
-              className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-900"
-            />
-            {errors.bio && (
-              <p className="mt-1 text-xs text-red-600">{errors.bio.message}</p>
-            )}
-            <p className="mt-1 text-[11px] text-slate-500">Max 300 characters.</p>
-          </div>
+          <Input
+            label="Avatar URL"
+            type="url"
+            placeholder="https://images.unsplash.com/photo-…"
+            error={errors.avatarUrl?.message}
+            hint="Paste a direct image link. Leave blank for default initials."
+            {...register('avatarUrl')}
+          />
 
-          {/* Action buttons */}
-          <div className="flex items-center justify-end space-x-3 pt-3">
-            <button
+          <TextArea
+            label="Bio"
+            rows={3}
+            placeholder="Tell others a bit about yourself…"
+            error={errors.bio?.message}
+            maxLength={300}
+            charCount={watchedBio?.length ?? 0}
+            {...register('bio')}
+          />
+
+          <div className="flex items-center justify-end pt-2">
+            <Button
               type="submit"
-              disabled={updateProfileMutation.isPending || !isDirty}
-              className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+              variant="primary"
+              size="md"
+              loading={updateProfileMutation.isPending}
+              disabled={!isDirty}
             >
-              {updateProfileMutation.isPending ? 'Saving Changes...' : 'Save Profile'}
-            </button>
+              Save Profile
+            </Button>
           </div>
         </form>
       </div>

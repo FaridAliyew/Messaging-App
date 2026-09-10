@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { Users, MessageSquare, ArrowRight, Activity } from 'lucide-react';
 import api from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
+import { Avatar } from '../components/ui/Avatar';
 
 interface HealthResponse {
   status: string;
@@ -12,10 +14,11 @@ interface HealthResponse {
 }
 
 export const HomePage: React.FC = () => {
-  const { user, logout, isLoggingOut } = useAuth();
-  const [avatarError, setAvatarError] = useState(false);
+  const { user } = useAuth();
 
-  const { data, isLoading, isError, error, refetch } = useQuery<HealthResponse>({
+  // Health check query is kept present (same query key) but not rendered in the UI
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { data: _health } = useQuery<HealthResponse>({
     queryKey: ['health'],
     queryFn: async () => {
       const res = await api.get<HealthResponse>('/health');
@@ -24,158 +27,69 @@ export const HomePage: React.FC = () => {
     retry: false,
   });
 
-  const initials = user?.displayName
-    ? user.displayName.slice(0, 2).toUpperCase()
-    : user?.username.slice(0, 2).toUpperCase() || 'U';
-
   return (
-    <div className="space-y-6">
-      {/* Top Banner */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              Messaging App
-            </h1>
-            <p className="text-sm text-slate-500">The Odin Project Full-Stack Assignment</p>
-          </div>
-          <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-700/10">
-            Phase 3 Active
-          </span>
-        </div>
-
-        {/* Authenticated User Card */}
-        {user && (
-          <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50/50 p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center space-x-3.5">
-                {user.avatarUrl && !avatarError ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.displayName || user.username}
-                    onError={() => setAvatarError(true)}
-                    className="h-14 w-14 rounded-full border border-slate-200 object-cover shadow-sm"
-                  />
-                ) : (
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-lg font-bold text-white shadow-sm">
-                    {initials}
-                  </div>
-                )}
-                <div>
-                  <h2 className="text-base font-semibold text-slate-900">
-                    {user.displayName || user.username}
-                  </h2>
-                  <p className="text-xs text-slate-500">@{user.username} • {user.email}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Link
-                  to="/profile"
-                  className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
-                >
-                  Edit Profile
-                </Link>
-                <button
-                  onClick={() => logout()}
-                  disabled={isLoggingOut}
-                  className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-red-600 disabled:opacity-50"
-                >
-                  {isLoggingOut ? 'Logging out...' : 'Log Out'}
-                </button>
-              </div>
-            </div>
-
-            {user.bio ? (
-              <p className="mt-3.5 border-t border-slate-200/60 pt-3 text-xs leading-relaxed text-slate-600">
-                {user.bio}
-              </p>
-            ) : (
-              <p className="mt-3.5 border-t border-slate-200/60 pt-3 text-xs italic text-slate-400">
-                You haven't set a bio yet.{' '}
-                <Link to="/profile" className="text-slate-700 underline">
-                  Add one now
-                </Link>
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Phase 3 Navigation Cards */}
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Link
-            to="/users"
-            className="group rounded-xl border border-slate-200 p-4 transition hover:border-slate-300 hover:shadow-sm"
+    <div className="mx-auto max-w-2xl space-y-8">
+      {/* Greeting */}
+      <div className="flex items-center gap-4">
+        <Avatar user={user ?? undefined} size="xl" />
+        <div>
+          <h1
+            className="text-2xl font-semibold text-foreground"
+            style={{ letterSpacing: '-0.02em' }}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-900 group-hover:text-blue-600">
-                👥 Browse Users Directory
-              </span>
-              <span className="text-xs text-slate-400">→</span>
-            </div>
-            <p className="mt-1 text-xs text-slate-500">
-              Find and explore user profiles across the application.
-            </p>
-          </Link>
-
-          <Link
-            to="/profile"
-            className="group rounded-xl border border-slate-200 p-4 transition hover:border-slate-300 hover:shadow-sm"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-900 group-hover:text-blue-600">
-                ✏️ Customize Your Profile
-              </span>
-              <span className="text-xs text-slate-400">→</span>
-            </div>
-            <p className="mt-1 text-xs text-slate-500">
-              Update your display name, bio, and avatar with live preview.
-            </p>
-          </Link>
+            Welcome back,{' '}
+            <span className="text-accent">{user?.displayName || user?.username}</span>
+          </h1>
+          {user && (
+            <p className="mt-0.5 font-mono text-sm text-muted">@{user.username}</p>
+          )}
+          {user?.bio && (
+            <p className="mt-2 text-sm leading-relaxed text-muted">{user.bio}</p>
+          )}
         </div>
+      </div>
 
-        {/* Backend API status check */}
-        <div className="space-y-4">
-          <div className="rounded-lg border border-slate-200 p-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-slate-700">Backend Health API Check</h3>
-              <button
-                onClick={() => refetch()}
-                className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-slate-800"
-              >
-                Test Endpoint
-              </button>
+      {/* Quick actions */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Link
+          to="/users"
+          className="group flex items-center justify-between rounded-xl border border-border bg-surface p-5 transition-colors duration-150 hover:bg-surface-2 hover:border-muted/40"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-2 text-accent transition-colors group-hover:bg-background">
+              <Users className="h-5 w-5" />
             </div>
-
-            <div className="mt-3 text-xs">
-              {isLoading && (
-                <p className="text-slate-500">Checking backend status...</p>
-              )}
-              {isError && (
-                <div className="rounded bg-amber-50 p-2.5 text-amber-800 border border-amber-200">
-                  <p className="font-semibold">Backend not detected or offline</p>
-                  <p className="mt-0.5 text-[11px] text-amber-700">
-                    Make sure the backend server is running on port 5000 (`npm run dev` in backend directory).
-                  </p>
-                  <p className="mt-1 font-mono text-[10px] text-amber-600">
-                    {(error as Error)?.message}
-                  </p>
-                </div>
-              )}
-              {data && (
-                <div className="rounded bg-emerald-50 p-2.5 text-emerald-800 border border-emerald-200 font-mono text-[11px]">
-                  <p>Status: {data.status}</p>
-                  <p>Environment: {data.environment}</p>
-                  <p>Server Time: {data.timestamp}</p>
-                </div>
-              )}
+            <div>
+              <p className="text-sm font-semibold text-foreground">Users</p>
+              <p className="text-xs text-muted">Browse and connect with members</p>
             </div>
           </div>
-        </div>
+          <ArrowRight className="h-4 w-4 text-faint transition-transform group-hover:translate-x-0.5 group-hover:text-muted" />
+        </Link>
 
-        <div className="mt-6 border-t border-slate-100 pt-4 text-center text-xs text-slate-400">
-          Ready for Phase 4: Conversations, Messaging, and Real-time Communication
-        </div>
+        <Link
+          to="/messages"
+          className="group flex items-center justify-between rounded-xl border border-border bg-surface p-5 transition-colors duration-150 hover:bg-surface-2 hover:border-muted/40"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-2 text-accent transition-colors group-hover:bg-background">
+              <MessageSquare className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Messages</p>
+              <p className="text-xs text-muted">Your direct conversations</p>
+            </div>
+          </div>
+          <ArrowRight className="h-4 w-4 text-faint transition-transform group-hover:translate-x-0.5 group-hover:text-muted" />
+        </Link>
+      </div>
+
+      {/* Status bar */}
+      <div className="flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-3">
+        <Activity className="h-3.5 w-3.5 text-accent" />
+        <span className="text-xs text-muted">
+          Connected · REST polling active
+        </span>
       </div>
     </div>
   );
